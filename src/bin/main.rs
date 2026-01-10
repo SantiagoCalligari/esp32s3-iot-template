@@ -7,10 +7,12 @@
 )]
 #![deny(clippy::large_stack_frames)]
 
+use alloc::string::String;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
 use esp_hal::clock::CpuClock;
 use esp_hal::timer::timg::TimerGroup;
+use esp_radio::wifi::{AccessPointConfig, AuthMethod, ModeConfig};
 use rtt_target::rprintln;
 
 #[panic_handler]
@@ -20,8 +22,6 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
 
 extern crate alloc;
 
-// This creates a default app-descriptor required by the esp-idf bootloader.
-// For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
 
 #[allow(
@@ -30,8 +30,6 @@ esp_bootloader_esp_idf::esp_app_desc!();
 )]
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
-    // generator version: 1.1.0
-
     rtt_target::rtt_init_print!();
 
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
@@ -45,11 +43,27 @@ async fn main(spawner: Spawner) -> ! {
     rprintln!("Embassy initialized!");
 
     let radio_init = esp_radio::init().expect("Failed to initialize Wi-Fi/BLE controller");
-    let (mut _wifi_controller, _interfaces) =
+    let (mut wifi_controller, _interfaces) =
         esp_radio::wifi::new(&radio_init, peripherals.WIFI, Default::default())
             .expect("Failed to initialize Wi-Fi controller");
 
-    // TODO: Spawn some tasks
+    let ap_config = ModeConfig::AccessPoint(
+        AccessPointConfig::default()
+            .with_ssid("esp32".into())
+            .with_auth_method(AuthMethod::Wpa2Personal)
+            .with_password("password".into()),
+    );
+
+    match wifi_controller.set_config(&ap_config) {
+        Ok(_) => rprintln!("Configuration set correctly"),
+        Err(e) => rprintln!("{}", e),
+    }
+
+    match wifi_controller.start() {
+        Ok(_) => rprintln!("Wifi started!"),
+        Err(e) => rprintln!("{}", e),
+    }
+
     let _ = spawner;
 
     loop {
