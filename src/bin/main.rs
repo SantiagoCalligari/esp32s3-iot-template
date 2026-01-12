@@ -9,7 +9,7 @@ use embassy_time::Timer;
 use esp_hal::{clock::CpuClock, timer::timg::TimerGroup};
 use esp_radio::Controller; // ✓ SIN el módulo wifi aquí
 use leasehund::DhcpServer; // ✓ Importar DhcpServer directamente
-use wifi_template::{dhcp, rprintln, utils::mk_static, wifi}; // ✓ Solo una vez wifi
+use wifi_template::{dhcp, http, rprintln, utils::mk_static, wifi}; // ✓ Agregado http
 
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
@@ -70,11 +70,13 @@ async fn main(spawner: Spawner) -> ! {
     );
     spawner.spawn(dhcp::dhcp_task(stack, dhcp_server)).ok();
 
+    spawner.spawn(http::task::http_task(0, stack)).ok();
+
     rprintln!("Todas las tareas iniciadas correctamente");
     let mut counter = 0;
     loop {
         rprintln!("Main: Sistema operativo {}", counter);
         counter += 1;
-        Timer::after_secs(10).await;
+        Timer::after_secs(120).await;
     }
 }
