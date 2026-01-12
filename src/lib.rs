@@ -2,6 +2,7 @@
 #![deny(clippy::mem_forget, clippy::large_stack_frames)]
 
 pub mod dhcp;
+pub mod http;
 pub mod utils;
 pub mod wifi;
 

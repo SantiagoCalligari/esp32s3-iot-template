@@ -44,9 +44,8 @@ async fn main(spawner: Spawner) -> ! {
         esp_radio::wifi::new(&radio_init, peripherals.WIFI, Default::default())
             .expect("Failed to initialize Wi-Fi");
 
-    let ip_address = Ipv4Cidr::new(Ipv4Addr::new(192, 168, 1, 1), 24);
     let net_config = embassy_net::Config::ipv4_static(StaticConfigV4 {
-        address: ip_address,
+        address: Ipv4Cidr::new(Ipv4Addr::new(192, 168, 1, 1), 24),
         gateway: Some(Ipv4Addr::new(192, 168, 1, 1)),
         dns_servers: Default::default(),
     });
@@ -61,7 +60,6 @@ async fn main(spawner: Spawner) -> ! {
     spawner.spawn(wifi::net_task(runner)).ok();
     spawner.spawn(wifi::connection(wifi_controller)).ok();
 
-    // Crear y spawnear servidor DHCP
     let dhcp_server: leasehund::DhcpServer<32, 4> = DhcpServer::new_with_dns(
         Ipv4Addr::new(192, 168, 1, 1),
         Ipv4Addr::new(255, 255, 255, 0),
@@ -72,7 +70,6 @@ async fn main(spawner: Spawner) -> ! {
     );
     spawner.spawn(dhcp::dhcp_task(stack, dhcp_server)).ok();
 
-    // 6. Main loop libre para otras tareas
     rprintln!("Todas las tareas iniciadas correctamente");
     let mut counter = 0;
     loop {
