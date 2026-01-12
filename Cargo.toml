@@ -9,6 +9,7 @@ name = "wifi-template"
 path = "./src/bin/main.rs"
 
 [dependencies]
+picoserve = { version = "0.17.1", features = ["embassy"] }
 leasehund = "0.2.0"
 esp-hal = { version = "~1.0", features = ["esp32s3", "unstable"] }
 

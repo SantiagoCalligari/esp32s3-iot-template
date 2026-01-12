@@ -1,5 +1,6 @@
 #![no_std]
 #![deny(clippy::mem_forget, clippy::large_stack_frames)]
+#![feature(impl_trait_in_assoc_type)]
 
 pub mod dhcp;
 pub mod http;
